@@ -2,8 +2,8 @@ from collections import deque
 
 class BFSSolver:
     """
-    Use breadth-first search to find the shortest path from (0,0) to (n-1, n-1)
-    wee ignore all coin gains or thief encounters
+    we use breadth-first search to find the shortest path from (0,0) to (n-1, n-1)
+     ignore all coin gains or thief encounters
     """
     def __init__(self, grid_size):
         self.grid_size = grid_size
@@ -13,7 +13,7 @@ class BFSSolver:
         end = (self.grid_size - 1, self.grid_size - 1)
         queue = deque()
         queue.append((start, []))
-        visited = set([start])  # there is no purpose for tree search so we use graph search
+        visited = set([start])  # there is no purpose in tree search so we do graph search by using visited set
         directions = [
             ('up', -1, 0),
             ('down', 1, 0),
@@ -22,6 +22,7 @@ class BFSSolver:
         ]
         while queue:
             current_pos, path = queue.popleft()
+            print(current_pos,path)
             if current_pos == end:
                 return path
             for dir_name, di, dj in directions:
