@@ -52,6 +52,7 @@ class GridSimulator:
                         current_grid[new_i][new_j] = -1
                     else:
                         coins_stolen += abs(cell)
+                        coins_collected -= abs(cell)    #?
                 has_thief = False  # Thief effect used
                 continue
             else:
