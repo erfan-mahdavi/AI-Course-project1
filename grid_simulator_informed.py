@@ -8,6 +8,6 @@ class simulatorState :
 def initial_state(grid)
     return simulaatorState_object
     
-def initial_state(grid, direction, n)
+def step(grid, direction, n)
     return simulaatorState_object
 '''
