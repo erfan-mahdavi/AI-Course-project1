@@ -1,5 +1,5 @@
 # main.py
-from grid_simulator import GridSimulator
+from grid_simulator_uninformed import GridSimulator
 from uninformed_search import BFSSolver
 
 
