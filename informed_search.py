@@ -87,25 +87,11 @@ class Astar:
     #  max profit
     def heuristic_1(self,state):
         row, col = state.state[0], state.state[1]
-        
-        remaining_rows = self.n - 1 - row
-        remaining_cols = self.n - 1 - col
-        
-        max_profits = []
-        
-        for r in range(row, self.n):
-            for c in range(col, self.n):
-                cell_value = self.grid[r][c]
-                if isinstance(cell_value, int) and cell_value >= 0:
-                    distance = abs(r - row) + abs(c - col)
-                    
-                    weighted_profit = cell_value / (distance + 1)
-                    max_profits.append(weighted_profit)
-        
-        max_profits.sort(reverse=True)
-        estimated_max_profit = sum(max_profits[:remaining_rows + remaining_cols + 1])
-        
-        return max(0, estimated_max_profit)
+        remaining_coins = [
+            self.grid[r][c] for r in range(row, self.n) for c in range(col, self.n)
+            if isinstance(self.grid[r][c], int) and self.grid[r][c] > 0
+        ]
+        return sum(sorted(remaining_coins, reverse=True)[:(self.n - 1 - row + self.n - 1 - col)])
 
     def cost_1(self,state):
         return state.state[5]
@@ -113,29 +99,9 @@ class Astar:
     #  min loss
     def heuristic_2(self,state):
         row, col = state.state[0], state.state[1]
-        
-        remaining_rows = self.n - 1 - row
-        remaining_cols = self.n - 1 - col
-        
-        potential_losses = []
-        
-        for r in range(row, self.n):
-            for c in range(col, self.n):
-                cell_value = self.grid[r][c]
-                
-                if isinstance(cell_value, int) and cell_value < 0:
-                    distance = abs(r - row) + abs(c - col)
-                    
-                    weighted_loss = abs(cell_value) / (distance + 1)
-                    potential_losses.append(weighted_loss)
-                
-                elif cell_value == '!':
-                    potential_losses.append(3 / (abs(r - row) + abs(c - col) + 1))
-        
-        potential_losses.sort(reverse=True)
-        estimated_min_loss = sum(potential_losses[:remaining_rows + remaining_cols + 1])
-        
-        return estimated_min_loss
+        thief_penalty = sum(1 for r in range(row, self.n) for c in range(col, self.n) if self.grid[r][c] == '!')
+
+        return thief_penalty
 
     def cost_2(self,state):
         return state.state[4]
@@ -148,7 +114,7 @@ class Astar:
         elif self.phase == 3:
             h = self.heuristic_2
             g = self.cost_2
-            sign = -1
+            sign = 1
         
         initial_state = State(0,0,self.grid[0][0],None,None)
         goal = (self.n-1,self.n-1)
@@ -165,6 +131,7 @@ class Astar:
             current_j = current_state.state[1]
             if tuple(current_state.state[0:2]) == goal:
                 return current_state
+            
             for action in action_list:
                 i = action_list[action][0]
                 j = action_list[action][1]
@@ -173,7 +140,8 @@ class Astar:
                 if new_i>=self.n or new_j>=self.n:
                     continue
                 new_state = State(new_i,new_j,self.grid[new_i][new_j],current_state,action)
-                f_n = (h(current_state) + g(current_state))*sign
+                f_n = (h(new_state) + g(new_state))*sign
+                print(f'i:{new_i},  j:{new_j},  grid[i][j]:{self.grid[new_i][new_j]},  f_n : {f_n}, (h,g) : ({h(new_state) },{ g(new_state)})')
                 fringe.put(Priority(f_n,new_state))
 
         return None
