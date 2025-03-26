@@ -141,7 +141,7 @@ class Astar:
                     continue
                 new_state = State(new_i,new_j,self.grid[new_i][new_j],current_state,action)
                 f_n = (h(new_state) + g(new_state))*sign
-                print(f'i:{new_i},  j:{new_j},  grid[i][j]:{self.grid[new_i][new_j]},  f_n : {f_n}, (h,g) : ({h(new_state) },{ g(new_state)})')
+                # print(f'i:{new_i},  j:{new_j},  grid[i][j]:{self.grid[new_i][new_j]},  f_n : {f_n}, (h,g) : ({h(new_state) },{ g(new_state)})')
                 fringe.put(Priority(f_n,new_state))
 
         return None
