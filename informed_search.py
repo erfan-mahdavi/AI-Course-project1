@@ -1,5 +1,13 @@
 from queue import PriorityQueue
 
+class Priority:
+    def __init__(self, priority, state):
+        self.priority = priority
+        self.state = state
+    
+    def __lt__(self, other):
+        return self.priority <= other.priority
+
 class State:
         # state format : (
         #                     index_i,
@@ -11,6 +19,7 @@ class State:
         #                     has_thief, 
         #                     parent_state,
         #                     action,
+        #                     list_of_actions,
         #                )
 
 
@@ -26,6 +35,7 @@ class State:
                     True if value=='!' else False,
                     parent_state,
                     action,
+                    [],
                 )
             else:
                 if value=='!':
@@ -45,6 +55,7 @@ class State:
                     has_thief,
                     parent_state,
                     action,
+                    parent_state.state[9] + [action],
                 )
         
         def thief(self,value,parent_state):
@@ -100,26 +111,28 @@ class Astar:
             'right' : (0,1),
         }
         fringe = PriorityQueue()
-        fringe.put((1,initial_state))
+        fringe.put(Priority(1,initial_state))
 
         while not fringe.empty():
-            current_state = fringe.get()
+            current_state = fringe.get().state
             current_i = current_state.state[0]
             current_j = current_state.state[1]
             if tuple(current_state.state[0:2]) == goal:
-                return 'find the answer'
+                return current_state
             for action in action_list:
                 i = action_list[action][0]
                 j = action_list[action][1]
                 new_i = current_i+i
                 new_j = current_j+j
+                if new_i>=self.n or new_j>=self.n:
+                    continue
                 new_state = State(new_i,new_j,self.grid[new_i][new_j],current_state,action)
                 f_n = 1
-                fringe.put((f_n,new_state))
+                fringe.put(Priority(f_n,new_state))
 
-
+        return 'there is no answer'
 
 
 if __name__=='__main__':
     a = Astar(2,[['!',2],[3,4]],2)
-    a.A_star()
+    print(a.A_star())
