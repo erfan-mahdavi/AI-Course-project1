@@ -93,18 +93,30 @@ class Astar:
             h = self.heuristic_2
             g = self.cost_2
         
-        
-
-        initial_state = (
-            0,
-            0,
-            (abs(self.grid[0][0]) if self.grid[0][0]<0 else 0) if self.grid[0][0]!='!' else 0,
-            (self.grid[0][0] if self.grid[0][0]>0 else 0) if self.grid[0][0]!='!' else 0,
-            True if self.grid[0][0]=='!' else False,
-            None,
-            None,
-            )
+        initial_state = State(0,0,self.grid[0][0],None,None)
         goal = (self.n-1,self.n-1)
+        action_list = {
+            'down' : (1,0),
+            'right' : (0,1),
+        }
+        fringe = PriorityQueue()
+        fringe.put((1,initial_state))
+
+        while not fringe.empty():
+            current_state = fringe.get()
+            current_i = current_state.state[0]
+            current_j = current_state.state[1]
+            if tuple(current_state.state[0:2]) == goal:
+                return 'find the answer'
+            for action in action_list:
+                i = action_list[action][0]
+                j = action_list[action][1]
+                new_i = current_i+i
+                new_j = current_j+j
+                new_state = State(new_i,new_j,self.grid[new_i][new_j],current_state,action)
+                f_n = 1
+                fringe.put((f_n,new_state))
+
 
 
 
