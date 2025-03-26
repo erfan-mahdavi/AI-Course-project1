@@ -84,17 +84,19 @@ class Astar:
         self.grid = grid
         self.phase = phase
 
-    def heuristic_1(self):
+    #  max profit
+    def heuristic_1(self,state):
+        return 1
+
+    def cost_1(self,state):
+        return state.state[5]
+
+    #  min loss
+    def heuristic_2(self,state):
         ...
 
-    def cost_1(self):
-        ...
-
-    def heuristic_2(self):
-        ...
-
-    def cost_2(self):
-        ...
+    def cost_2(self,state):
+        return state.state[4]
 
     def A_star(self):
         if self.phase == 2:
@@ -127,7 +129,7 @@ class Astar:
                 if new_i>=self.n or new_j>=self.n:
                     continue
                 new_state = State(new_i,new_j,self.grid[new_i][new_j],current_state,action)
-                f_n = 1
+                f_n = h(current_state) + g(current_state)
                 fringe.put(Priority(f_n,new_state))
 
         return 'there is no answer'
