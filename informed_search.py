@@ -39,11 +39,11 @@ class State:
                 )
             else:
                 if value=='!':
-                    current_cost, current_profit, has_thief, stolen_coin, collected_coin = self.thief(value,parent_state)
+                    current_cost, current_profit, stolen_coin, collected_coin, has_thief = self.thief(value,parent_state)
                 elif value>=0:
-                    current_cost, current_profit, has_thief, stolen_coin, collected_coin = self.positive_value(value,parent_state)
+                    current_cost, current_profit, stolen_coin, collected_coin, has_thief = self.positive_value(value,parent_state)
                 else:
-                    current_cost, current_profit, has_thief, stolen_coin, collected_coin = self.negetive_value(value,parent_state)
+                    current_cost, current_profit, stolen_coin, collected_coin, has_thief = self.negetive_value(value,parent_state)
 
                 self.state = (
                     i,
