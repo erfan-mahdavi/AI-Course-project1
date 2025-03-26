@@ -31,7 +31,7 @@ class State:
                     (abs(value) if value<0 else 0) if value!='!' else 0,
                     (value if value>0 else 0) if value!='!' else 0,
                     0,
-                    0,
+                    value if value!='!' else 0,
                     True if value=='!' else False,
                     parent_state,
                     action,
@@ -86,14 +86,20 @@ class Astar:
 
     #  max profit
     def heuristic_1(self,state):
-        return 1
+        i = state.state[0]
+        j = state.state[1]
+        remaining_steps = (self.n - 1 - i) + (self.n - 1 - j)
+        return remaining_steps
 
     def cost_1(self,state):
-        return state.state[5]
+        return -state.state[5]
 
     #  min loss
     def heuristic_2(self,state):
-        ...
+        i = state.state[0]
+        j = state.state[1]
+        remaining_steps = (self.n - 1 - i) + (self.n - 1 - j)
+        return -remaining_steps
 
     def cost_2(self,state):
         return state.state[4]

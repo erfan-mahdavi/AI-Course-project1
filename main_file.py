@@ -44,7 +44,7 @@ class Menu:
         print('===============  phase 2 ====================')
         astar = Astar(n,grid,2)
         result = astar.A_star()
-        if not result:
+        if result!=None:
             print("\nApproach 2 (Max-profit):")
             print("Path steps:", result.state[9])
             print("Coins collected:", result.state[5])
@@ -57,7 +57,7 @@ class Menu:
         print('===============  phase 3 ====================')
         astar = Astar(n,grid,3)
         result = astar.A_star()
-        if not result:
+        if result!=None:
             print("\nApproach 3 (Min-loss):")
             print("Path steps:", result.state[9])
             print("Coins collected:", result.state[5])
