@@ -132,7 +132,7 @@ class Astar:
                 f_n = h(current_state) + g(current_state)
                 fringe.put(Priority(f_n,new_state))
 
-        return 'there is no answer'
+        return None
 
 
 if __name__=='__main__':

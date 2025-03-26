@@ -1,15 +1,16 @@
 # main.py
 from grid_simulator_uninformed import GridSimulator
 from uninformed_search import BFSSolver
+from informed_search import Astar
 
 
 class Menu:
     def __init__(self,n,grid):
         while True:
             print("Select approach:")
-            print("1: phase 1 ") #Exit-only (BFS)
-            print('2: phase 2 ')
-            print('3: phase 3 ')
+            print("1: phase 1 ") # Exit-only (BFS)
+            print('2: phase 2 ') # Max-profit (Astar)
+            print('3: phase 3 ') # Min-loss (Astar)
             print('4: exit')
             choice = input("Enter your choice : ").strip()
 
@@ -36,17 +37,33 @@ class Menu:
             print("Coins collected:", result['coins_collected'])
             print("Coins stolen:", result['coins_stolen'])
         else:
-            print('no path found.')
+            print('No Path Found.')
         print('=================== phase 1 ended ========================')
 
     def phase2(self,n,grid):
         print('===============  phase 2 ====================')
-        
+        astar = Astar(n,grid,2)
+        result = astar.A_star()
+        if not result:
+            print("\nApproach 2 (Max-profit):")
+            print("Path steps:", result.state[9])
+            print("Coins collected:", result.state[5])
+            print("Coins stolen:", result.state[4])
+        else:
+            print('No Path Found.')
         print('=================== phase 2 ended ========================')
 
     def phase3(self,n,grid):
         print('===============  phase 3 ====================')
-        
+        astar = Astar(n,grid,3)
+        result = astar.A_star()
+        if not result:
+            print("\nApproach 3 (Min-loss):")
+            print("Path steps:", result.state[9])
+            print("Coins collected:", result.state[5])
+            print("Coins stolen:", result.state[4])
+        else:
+            print('No Path Found.')
         print('=================== phase 3 ended ========================')
 
 def main():
