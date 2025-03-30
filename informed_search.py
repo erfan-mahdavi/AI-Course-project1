@@ -99,9 +99,22 @@ class Astar:
     #  min loss
     def heuristic_2(self,state):
         row, col = state.state[0], state.state[1]
-        thief_penalty = sum(1 for r in range(row, self.n) for c in range(col, self.n) if self.grid[r][c] == '!')
-
-        return thief_penalty
+    
+        min_loss = 0
+        has_thief = state.state[6]
+        
+        for r in range(row, self.n):
+            for c in range(col, self.n):
+                if r == row and c == col:
+                    continue
+                    
+                if self.grid[r][c] == '!':
+                    has_thief = not has_thief
+                    
+                elif has_thief and isinstance(self.grid[r][c], int) and self.grid[r][c] > 0:
+                    min_loss += self.grid[r][c]
+                    
+        return min_loss
 
     def cost_2(self,state):
         return state.state[4]
@@ -123,7 +136,9 @@ class Astar:
             'right' : (0,1),
         }
         fringe = PriorityQueue()
-        fringe.put(Priority(1,initial_state))
+        # fringe.put(Priority(1,initial_state))
+        initial_f = (h(initial_state) + g(initial_state)) * sign
+        fringe.put(Priority(initial_f, initial_state))
 
         while not fringe.empty():
             current_state = fringe.get().state

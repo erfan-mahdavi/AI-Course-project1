@@ -20,7 +20,7 @@ class BFSSolver:
         ]
         while queue:
             current_pos, path = queue.popleft()
-            print(current_pos,path)
+            # print(current_pos,path)
             if current_pos == goal:
                 return path
             for dir_name, di, dj in directions:
