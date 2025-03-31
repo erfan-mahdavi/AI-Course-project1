@@ -34,7 +34,7 @@ class Menu:
         self.grid = grid
         self.root = tk.Tk()
         self.root.title("Grid Pathfinding Visualization")
-        self.root.geometry("1200x900")
+        self.root.geometry("800x700")
         self.root.resizable(True, True)
         control_frame = ttk.Frame(self.root, padding="10")
         control_frame.pack(fill="x")
@@ -63,28 +63,30 @@ class Menu:
 
     def phase2(self):
         astar = Astar(self.n, self.grid, 2)
-        result = astar.A_star()
+        result, state_counter = astar.A_star()
         if result != None:
             path = result.state[9]
-            simulation_result = {'coins_collected': result.state[5], 'coins_stolen': result.state[4], 'path': path}
+            simulation_result = {'coins_collected': result.state[5], 'coins_stolen': result.state[4], 'path': path, 'states_searched': state_counter}
             print("\nApproach 2 (Max-profit):")
             print("Path steps:", path)
             print("Coins collected:", result.state[5])
             print("Coins stolen:", result.state[4])
+            print("States searched:", state_counter)
             self.grid_vis.visualize_path(path, 2, simulation_result)
         else:
             messagebox.showerror("Error", "No path found for Phase 2")
 
     def phase3(self):
         astar = Astar(self.n, self.grid, 3)
-        result = astar.A_star()
+        result, state_counter = astar.A_star()
         if result != None:
             path = result.state[9]
-            simulation_result = {'coins_collected': result.state[5], 'coins_stolen': result.state[4], 'path': path}
+            simulation_result = {'coins_collected': result.state[5], 'coins_stolen': result.state[4], 'path': path, 'states_searched': state_counter}
             print("\nApproach 3 (Min-loss):")
             print("Path steps:", path)
             print("Coins collected:", result.state[5])
             print("Coins stolen:", result.state[4])
+            print("States searched:", state_counter)
             self.grid_vis.visualize_path(path, 3, simulation_result)
         else:
             messagebox.showerror("Error", "No path found for Phase 3")
@@ -93,7 +95,7 @@ class GridApp:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Grid Setup")
-        self.root.geometry("1000x800")
+        self.root.geometry("800x700")
         self.root.resizable(True, True)
         main_frame = ttk.Frame(self.root, padding="20")
         main_frame.pack(fill="both", expand=True)
@@ -266,3 +268,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

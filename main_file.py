@@ -43,12 +43,13 @@ class Menu:
     def phase2(self,n,grid):
         print('===============  phase 2 ====================')
         astar = Astar(n,grid,2)
-        result = astar.A_star()
+        result,state_counter = astar.A_star()
         if result!=None:
             print("\nApproach 2 (Max-profit):")
             print("Path steps:", result.state[9])
             print("Coins collected:", result.state[5])
             print("Coins stolen:", result.state[4])
+            print("number of searched states:", state_counter)
         else:
             print('No Path Found.')
         print('=================== phase 2 ended ========================')

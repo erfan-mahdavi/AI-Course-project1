@@ -100,7 +100,7 @@ class Astar:
             current_i = current_state.state[0]
             current_j = current_state.state[1]
             if tuple(current_state.state[0:2]) == goal:
-                return current_state
+                return current_state,state_counter
             
             for action in action_list:
                 i = action_list[action][0]
@@ -113,10 +113,10 @@ class Astar:
                 f_n = (h(new_state) + g(new_state))*sign
                 # print(f'i:{new_i},  j:{new_j},  grid[i][j]:{self.grid[new_i][new_j]},  f_n : {f_n}, (h,g) : ({h(new_state) },{ g(new_state)})')
                 state_counter+=1
-                print(state_counter)
+                #print(state_counter)
                 fringe.put(Priority(f_n,new_state))
 
-        return None
+        return None,state_counter
 
 
 if __name__=='__main__':

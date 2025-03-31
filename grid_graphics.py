@@ -25,7 +25,7 @@ class GridGraphics:
         self.info_frame = ttk.Frame(self.frame)
         self.info_frame.grid(row=2, column=0, columnspan=2, pady=10, sticky="ew")
         self.info_labels = {}
-        info_texts = ["Phase", "Path", "Coins Collected", "Coins Stolen"]
+        info_texts = ["Phase", "Path", "Coins Collected", "Coins Stolen", "Searched States"]
         for i, text in enumerate(info_texts):
             ttk.Label(self.info_frame, text=f"{text}:").grid(row=i, column=0, sticky="w", pady=2)
             self.info_labels[text.lower().replace(" ", "_")] = ttk.Label(self.info_frame, text="")
@@ -91,7 +91,7 @@ class GridGraphics:
         else:
             self.cell_text_ids[text_id] = self.canvas.create_text(x1 + self.cell_size//2, y1 + self.cell_size//2, text=str(text_value), font=("Arial", 12, "bold"))
 
-    def update_info(self, phase=None, path=None, coins_collected=None, coins_stolen=None):
+    def update_info(self, phase=None, path=None, coins_collected=None, coins_stolen=None, states_searched=None):
         if phase is not None:
             self.info_labels["phase"].config(text=f"Phase {phase}")
         if path is not None:
@@ -100,12 +100,14 @@ class GridGraphics:
             self.info_labels["coins_collected"].config(text=str(coins_collected))
         if coins_stolen is not None:
             self.info_labels["coins_stolen"].config(text=str(coins_stolen))
+        if states_searched is not None:
+            self.info_labels["searched_states"].config(text=str(states_searched))
 
     def visualize_path(self, path, phase, simulation_result):
         self.current_path = path
         self.current_step = 0
         self.reset_grid()
-        self.update_info(phase=phase, path=path, coins_collected=simulation_result["coins_collected"], coins_stolen=simulation_result["coins_stolen"])
+        self.update_info(phase=phase, path=path, coins_collected=simulation_result["coins_collected"], coins_stolen=simulation_result["coins_stolen"], states_searched=simulation_result["states_searched"])
         self.step_button.config(state="normal", command=self.step_forward)
         self.auto_button.config(state="normal", command=self.auto_run)
         self.reset_button.config(command=self.reset_visualization)
@@ -161,3 +163,4 @@ def show_grid_visualization(grid, phase, path, simulation_result):
     grid_vis = GridGraphics(root, grid)
     grid_vis.visualize_path(path, phase, simulation_result)
     root.mainloop()
+
