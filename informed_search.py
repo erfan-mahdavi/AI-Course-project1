@@ -43,6 +43,20 @@ class Astar:
         ]
         return sum(sorted(remaining_coins, reverse=True)[:(self.n - 1 - row + self.n - 1 - col)])
     '''
+    '''
+     state format : (
+        0         index_i,
+        1         index_j,
+        2         current_cost,
+        3         current_profit,
+        4         stolen_coin, 
+        5         collected_coin,
+        6         has_thief, 
+        7         parent_state,
+        8         action,
+        9         list_of_actions,
+     )
+    '''
 
     def cost_1(self,state):
         return state.state[5]
@@ -80,7 +94,7 @@ class Astar:
             g = self.cost_1
             sign = -1
         elif self.phase == 3:
-            h = self.heuristic_2
+            h = self.heuristic_2                                          
             g = self.cost_2
             sign = 1
         
@@ -90,7 +104,7 @@ class Astar:
             'down' : (1,0),
             'right' : (0,1),
         }
-        fringe = PriorityQueue()
+        fringe = PriorityQueue()  # min-first priority queue
         # fringe.put(Priority(1,initial_state))
         initial_f = (h(initial_state) + g(initial_state)) * sign
         fringe.put(Priority(initial_f, initial_state))
