@@ -50,9 +50,6 @@ class Astar:
     def cost_1(self,state):
         return state.state[5]
 
-    def cost_1(self,state):
-        return state.state[5]
-
     #  min loss
     def heuristic_2(self, state):
         row, col = state.state[0], state.state[1]
