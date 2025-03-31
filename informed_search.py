@@ -85,6 +85,33 @@ class Astar:
         self.phase = phase
 
     #  max profit
+    '''
+    def heuristic_1(self,state):
+        row, col = state.state[0], state.state[1]
+        original_row = row
+        original_col = col
+        remaining_coins = [
+            [self.grid[r][c],(r,c)] for r in range(row, self.n) for c in range(col, self.n)
+            if isinstance(self.grid[r][c], int) and self.grid[r][c] > 0
+        ]
+        while (row<(self.n-1)) and  (col<(self.n-1)):
+            sum_down = sum([i[0] for i in remaining_coins if ( (i[1][0]>row)and(i[1][1]==col)) ])
+            sum_right = sum([i[0] for i in remaining_coins if ( (i[1][0]==row)and(i[1][1]>col)) ])
+            if sum_down >= sum_right:
+                remaining_coins = [i for i in remaining_coins if not((i[1][0]==row)and (i[1][1]>col))]
+            else:
+                remaining_coins = [i for i in remaining_coins if not((i[1][1]==col)and (i[1][0]>row))]
+            row+=1
+            col+=1
+                
+        sorted_list = sorted(remaining_coins, key=lambda x: x[0], reverse=True)[:(self.n - 1 - original_row + self.n - 1 - original_col)]
+        
+        sum1 = 0
+        for i in sorted_list:
+            sum1 += i[0]
+        #print(sorted_list)
+        return sum1
+        '''
     def heuristic_1(self,state):
         row, col = state.state[0], state.state[1]
         remaining_coins = [
@@ -92,6 +119,9 @@ class Astar:
             if isinstance(self.grid[r][c], int) and self.grid[r][c] > 0
         ]
         return sum(sorted(remaining_coins, reverse=True)[:(self.n - 1 - row + self.n - 1 - col)])
+
+    def cost_1(self,state):
+        return state.state[5]
 
     def cost_1(self,state):
         return state.state[5]
@@ -120,6 +150,7 @@ class Astar:
         return state.state[4]
 
     def A_star(self):
+        state_counter=0
         if self.phase == 2:
             h = self.heuristic_1
             g = self.cost_1
@@ -157,6 +188,8 @@ class Astar:
                 new_state = State(new_i,new_j,self.grid[new_i][new_j],current_state,action)
                 f_n = (h(new_state) + g(new_state))*sign
                 # print(f'i:{new_i},  j:{new_j},  grid[i][j]:{self.grid[new_i][new_j]},  f_n : {f_n}, (h,g) : ({h(new_state) },{ g(new_state)})')
+                state_counter+=1
+                print(state_counter)
                 fringe.put(Priority(f_n,new_state))
 
         return None
