@@ -1,81 +1,4 @@
-from queue import PriorityQueue
-
-class Priority:
-    def __init__(self, priority, state):
-        self.priority = priority
-        self.state = state
-    
-    def __lt__(self, other):
-        return self.priority <= other.priority
-
-class State:
-        # state format : (
-        #                     index_i,
-        #                     index_j,
-        #                     current_cost,
-        #                     current_profit,
-        #                     stolen_coin, 
-        #                     collected_coin,
-        #                     has_thief, 
-        #                     parent_state,
-        #                     action,
-        #                     list_of_actions,
-        #                )
-
-
-        def __init__(self,i,j,value,parent_state,action):
-            if i==0 and j==0:
-                self.state = (
-                    0,
-                    0,
-                    (abs(value) if value<0 else 0) if value!='!' else 0,
-                    (value if value>0 else 0) if value!='!' else 0,
-                    0,
-                    value if value!='!' else 0,
-                    True if value=='!' else False,
-                    parent_state,
-                    action,
-                    [],
-                )
-            else:
-                if value=='!':
-                    current_cost, current_profit, stolen_coin, collected_coin, has_thief = self.thief(value,parent_state)
-                elif value>=0:
-                    current_cost, current_profit, stolen_coin, collected_coin, has_thief = self.positive_value(value,parent_state)
-                else:
-                    current_cost, current_profit, stolen_coin, collected_coin, has_thief = self.negetive_value(value,parent_state)
-
-                self.state = (
-                    i,
-                    j,
-                    current_cost,
-                    current_profit,
-                    stolen_coin,
-                    collected_coin,
-                    has_thief,
-                    parent_state,
-                    action,
-                    parent_state.state[9] + [action],
-                )
-        
-        def thief(self,value,parent_state):
-            if parent_state.state[6]:
-                return parent_state.state[2], parent_state.state[3], parent_state.state[4], parent_state.state[5], False
-            else:
-                return parent_state.state[2], parent_state.state[3], parent_state.state[4], parent_state.state[5], True
-
-        def positive_value(self,value,parent_state):
-            if parent_state.state[6]:
-                return parent_state.state[2], parent_state.state[3]+value , parent_state.state[4]+value , parent_state.state[5], False
-            else:
-                return parent_state.state[2], parent_state.state[3]+value , parent_state.state[4] , parent_state.state[5]+value , False
-        
-        def negetive_value(self,value,parent_state):
-            if parent_state.state[6]:
-                return parent_state.state[2]+abs(value) , parent_state.state[3] , parent_state.state[4]+abs(value) , parent_state.state[5]-2*abs(value), False
-            else:
-                return parent_state.state[2]+abs(value) , parent_state.state[3] , parent_state.state[4] , parent_state.state[5]-abs(value), False
-
+from grid_simulator_informed import State,Priority,PriorityQueue
 
 
 class Astar:
@@ -85,7 +8,7 @@ class Astar:
         self.phase = phase
 
     #  max profit
-    '''
+    
     def heuristic_1(self,state):
         row, col = state.state[0], state.state[1]
         original_row = row
@@ -111,7 +34,7 @@ class Astar:
             sum1 += i[0]
         #print(sorted_list)
         return sum1
-        '''
+    '''
     def heuristic_1(self,state):
         row, col = state.state[0], state.state[1]
         remaining_coins = [
@@ -119,6 +42,7 @@ class Astar:
             if isinstance(self.grid[r][c], int) and self.grid[r][c] > 0
         ]
         return sum(sorted(remaining_coins, reverse=True)[:(self.n - 1 - row + self.n - 1 - col)])
+    '''
 
     def cost_1(self,state):
         return state.state[5]
