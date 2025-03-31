@@ -65,24 +65,50 @@ class Astar:
         return state.state[5]
 
     #  min loss
-    def heuristic_2(self,state):
+    def heuristic_2(self, state):
         row, col = state.state[0], state.state[1]
-    
-        min_loss = 0
-        has_thief = state.state[6]
-        
-        for r in range(row, self.n):
-            for c in range(col, self.n):
-                if r == row and c == col:
+        current_thief = state.state[6]
+        grid_copy = [r.copy() for r in self.grid]
+        def simulate(r, c, has_thief, grid, moves_remaining):
+            if moves_remaining == 0:
+                return 0
+            costs = []
+            for move in ['down', 'right']:
+                new_grid = [row.copy() for row in grid]
+                if move == 'down':
+                    nr, nc = r + 1, c
+                else:
+                    nr, nc = r, c + 1
+                if nr < 0 or nr >= self.n or nc < 0 or nc >= self.n:
                     continue
-                    
-                if self.grid[r][c] == '!':
-                    has_thief = not has_thief
-                    
-                elif has_thief and isinstance(self.grid[r][c], int) and self.grid[r][c] > 0:
-                    min_loss += self.grid[r][c]
-                    
-        return min_loss
+                coins_stolen = 0
+                cell = new_grid[nr][nc]
+                if has_thief:
+                    if cell == '!':
+                        pass
+                    elif isinstance(cell, int):
+                        if cell > 0:
+                            coins_stolen += cell
+                            new_grid[nr][nc] = -1
+                        elif cell < 0:
+                            coins_stolen += abs(cell)
+                            new_grid[nr][nc] = -1
+                    new_has_thief = False
+                else:
+                    if cell == '!':
+                        new_has_thief = True
+                    else:
+                        new_has_thief = False
+                        if isinstance(cell, int):
+                            if cell > 0:
+                                new_grid[nr][nc] = -1
+                future = simulate(nr, nc, new_has_thief, new_grid, moves_remaining - 1)
+                costs.append(coins_stolen + future)
+            if not costs:
+                return 0
+            return min(costs)
+        return simulate(row, col, current_thief, grid_copy, 3)
+
 
     def cost_2(self,state):
         return state.state[4]
