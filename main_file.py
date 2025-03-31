@@ -57,12 +57,13 @@ class Menu:
     def phase3(self,n,grid):
         print('===============  phase 3 ====================')
         astar = Astar(n,grid,3)
-        result = astar.A_star()
+        result,state_counter = astar.A_star()
         if result!=None:
             print("\nApproach 3 (Min-loss):")
             print("Path steps:", result.state[9])
             print("Coins collected:", result.state[5])
             print("Coins stolen:", result.state[4])
+            print("number of searched states:", state_counter)
         else:
             print('No Path Found.')
         print('=================== phase 3 ended ========================')
