@@ -8,7 +8,6 @@ class Astar:
         self.phase = phase
 
     #  max profit
-    
     def heuristic_1(self,state):
         row, col = state.state[0], state.state[1]
         original_row = row
@@ -32,17 +31,7 @@ class Astar:
         sum1 = 0
         for i in sorted_list:
             sum1 += i[0]
-        #print(sorted_list)
         return sum1
-    '''
-    def heuristic_1(self,state):
-        row, col = state.state[0], state.state[1]
-        remaining_coins = [
-            self.grid[r][c] for r in range(row, self.n) for c in range(col, self.n)
-            if isinstance(self.grid[r][c], int) and self.grid[r][c] > 0
-        ]
-        return sum(sorted(remaining_coins, reverse=True)[:(self.n - 1 - row + self.n - 1 - col)])
-    '''
     '''
      state format : (
         0         index_i,
@@ -131,7 +120,6 @@ class Astar:
             'right' : (0,1),
         }
         fringe = PriorityQueue()  # min-first priority queue
-        # fringe.put(Priority(1,initial_state))
         initial_f = (h(initial_state) + g(initial_state)) * sign
         fringe.put(Priority(initial_f, initial_state))
 
@@ -151,9 +139,7 @@ class Astar:
                     continue
                 new_state = State(new_i,new_j,self.grid[new_i][new_j],current_state,action)
                 f_n = (h(new_state) + g(new_state))*sign
-                # print(f'i:{new_i},  j:{new_j},  grid[i][j]:{self.grid[new_i][new_j]},  f_n : {f_n}, (h,g) : ({h(new_state) },{ g(new_state)})')
                 state_counter+=1
-                #print(state_counter)
                 fringe.put(Priority(f_n,new_state))
 
         return None,state_counter
