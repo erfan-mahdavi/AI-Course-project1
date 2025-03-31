@@ -49,14 +49,16 @@ class Menu:
 
     def phase1(self):
         bfs_solver = BFSSolver(self.n)
-        path = bfs_solver.find_shortest_path()
+        path,state_counter = bfs_solver.find_shortest_path()
         if path:
             simulator = GridSimulator(self.grid)
             result = simulator.simulate_path(path)
+            result["states_searched"]=state_counter
             print("\nApproach 1 (Exit-only):")
             print("Path steps:", result['path'])
             print("Coins collected:", result['coins_collected'])
             print("Coins stolen:", result['coins_stolen'])
+            print("States searched:", state_counter)
             self.grid_vis.visualize_path(path, 1, result)
         else:
             messagebox.showerror("Error", "No path found for Phase 1")

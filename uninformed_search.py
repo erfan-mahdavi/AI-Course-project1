@@ -8,6 +8,7 @@ class BFSSolver:
         self.grid_size = grid_size
 
     def find_shortest_path(self):
+        state_counter=0
         start = (0, 0)
         goal = (self.grid_size - 1, self.grid_size - 1)
         queue = deque()
@@ -19,10 +20,11 @@ class BFSSolver:
             ('right', 0, 1)
         ]
         while queue:
+            state_counter+=1
             current_pos, path = queue.popleft()
             # print(current_pos,path)
             if current_pos == goal:
-                return path
+                return path,state_counter
             for dir_name, di, dj in directions:
                 new_i = current_pos[0] + di
                 new_j = current_pos[1] + dj
@@ -30,4 +32,4 @@ class BFSSolver:
                 if 0 <= new_i < self.grid_size and 0 <= new_j < self.grid_size and (new_pos not in visited):
                     queue.append((new_pos, path + [dir_name]))
                     visited.add(new_pos)
-        return None
+        return None,0

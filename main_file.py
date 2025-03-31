@@ -28,7 +28,7 @@ class Menu:
     def phase1(self,n,grid):
         print('===============  phase 1 ====================')
         bfs_solver = BFSSolver(n)
-        path = bfs_solver.find_shortest_path()
+        path,state_counter = bfs_solver.find_shortest_path()
         if path:
             simulator = GridSimulator(grid)
             result = simulator.simulate_path(path)
@@ -36,6 +36,7 @@ class Menu:
             print("Path steps:", result['path'])
             print("Coins collected:", result['coins_collected'])
             print("Coins stolen:", result['coins_stolen'])
+            print("number of searched states:", state_counter)
         else:
             print('No Path Found.')
         print('=================== phase 1 ended ========================')
