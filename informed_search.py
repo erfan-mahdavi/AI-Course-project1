@@ -7,31 +7,40 @@ class Astar:
         self.grid = grid
         self.phase = phase
 
+    def manhattan_distance(self, r1, c1, r2, c2):
+        return abs(r2 - r1) + abs(c2 - c1)
+
     #  max profit
     def heuristic_1(self,state):
-        row, col = state.state[0], state.state[1]
-        original_row = row
-        original_col = col
-        remaining_coins = [
-            [self.grid[r][c],(r,c)] for r in range(row, self.n) for c in range(col, self.n)
-            if isinstance(self.grid[r][c], int) and self.grid[r][c] > 0
-        ]
-        while (row<(self.n-1)) and  (col<(self.n-1)):
-            sum_down = sum([i[0] for i in remaining_coins if ( (i[1][0]>row)and(i[1][1]==col)) ])
-            sum_right = sum([i[0] for i in remaining_coins if ( (i[1][0]==row)and(i[1][1]>col)) ])
-            if sum_down >= sum_right:
-                remaining_coins = [i for i in remaining_coins if not((i[1][0]==row)and (i[1][1]>col))]
-            else:
-                remaining_coins = [i for i in remaining_coins if not((i[1][1]==col)and (i[1][0]>row))]
-            row+=1
-            col+=1
-                
-        sorted_list = sorted(remaining_coins, key=lambda x: x[0], reverse=True)[:(self.n - 1 - original_row + self.n - 1 - original_col)]
-        
-        sum1 = 0
-        for i in sorted_list:
-            sum1 += i[0]
-        return sum1
+            row, col = state.state[0], state.state[1]
+            has_thief = state.state[6]
+            
+            coin_values = {}
+            for r in range(row, self.n):
+                for c in range(col, self.n):
+                    cell = self.grid[r][c]
+                    if isinstance(cell, int) and cell > 0:
+                        coin_values[(r, c)] = cell
+            
+            dp = [[0 for _ in range(self.n)] for _ in range(self.n)]
+            
+            for r in range(self.n-1, row-1, -1):
+                for c in range(self.n-1, col-1, -1):
+                    pos_value = coin_values.get((r, c), 0)
+                    
+                    if r == self.n-1 and c == self.n-1:
+                        dp[r][c] = pos_value
+                    elif r == self.n-1:
+                        dp[r][c] = pos_value + dp[r][c+1]
+                    elif c == self.n-1:
+                        dp[r][c] = pos_value + dp[r+1][c]
+                    else:
+                        dp[r][c] = pos_value + max(dp[r+1][c], dp[r][c+1])
+            
+            if has_thief:
+                return 0
+            
+            return dp[row][col]
     '''
      state format : (
         0         index_i,
@@ -53,48 +62,85 @@ class Astar:
     #  min loss
     def heuristic_2(self, state):
         row, col = state.state[0], state.state[1]
-        current_thief = state.state[6]
-        grid_copy = [r.copy() for r in self.grid]
-        def simulate(r, c, has_thief, grid, moves_remaining):
-            if moves_remaining == 0:
-                return 0
-            costs = []
-            for move in ['down', 'right']:
-                new_grid = [row.copy() for row in grid]
-                if move == 'down':
-                    nr, nc = r + 1, c
-                else:
-                    nr, nc = r, c + 1
-                if nr < 0 or nr >= self.n or nc < 0 or nc >= self.n:
-                    continue
-                coins_stolen = 0
-                cell = new_grid[nr][nc]
-                if has_thief:
-                    if cell == '!':
-                        pass
-                    elif isinstance(cell, int):
-                        if cell > 0:
-                            coins_stolen += cell
-                            new_grid[nr][nc] = -1
-                        elif cell < 0:
-                            coins_stolen += abs(cell)
-                            new_grid[nr][nc] = -1
-                    new_has_thief = False
-                else:
-                    if cell == '!':
-                        new_has_thief = True
-                    else:
-                        new_has_thief = False
-                        if isinstance(cell, int):
-                            if cell > 0:
-                                new_grid[nr][nc] = -1
-                future = simulate(nr, nc, new_has_thief, new_grid, moves_remaining - 1)
-                costs.append(coins_stolen + future)
-            if not costs:
-                return 0
-            return min(costs)
-        return simulate(row, col, current_thief, grid_copy, 3)
+        has_thief = state.state[6]
+        
+        if row == self.n - 1 and col == self.n - 1:
+            return 0
+        
 
+        if not has_thief:
+            has_future_thief = False
+            for r in range(row, self.n):
+                for c in range(col, self.n):
+                    if r == row and c == col:
+                        continue  
+                    if self.grid[r][c] == '!':
+                        has_future_thief = True
+                        break
+                if has_future_thief:
+                    break
+            
+            if not has_future_thief:
+                return 0  
+        
+        dp = [[0 for _ in range(self.n + 1)] for _ in range(self.n + 1)]
+        
+        for r in range(self.n - 1, -1, -1):
+            for c in range(self.n - 1, -1, -1):
+                if r < row or (r == row and c < col):
+                    continue
+                    
+                cell_value = self.grid[r][c]
+                
+                potential_loss = 0
+                if isinstance(cell_value, int) and cell_value > 0 and has_thief:
+                    potential_loss = cell_value
+                    
+                if r == self.n - 1 and c == self.n - 1:
+                    dp[r][c] = potential_loss
+                elif r == self.n - 1:
+                    dp[r][c] = potential_loss + dp[r][c+1]
+                elif c == self.n - 1:
+                    dp[r][c] = potential_loss + dp[r+1][c]
+                else:
+                    dp[r][c] = potential_loss + min(dp[r+1][c], dp[r][c+1])
+        
+
+        if has_thief:
+            return dp[row][col]
+
+        min_future_loss = float('inf')
+        
+        thief_locations = []
+        for r in range(row, self.n):
+            for c in range(col, self.n):
+                if self.grid[r][c] == '!':
+                    thief_locations.append((r, c))
+        
+        if not thief_locations:
+            return 0 
+        
+        for thief_r, thief_c in thief_locations:
+            dist_to_thief = abs(thief_r - row) + abs(thief_c - col)
+            
+            if thief_r < row or thief_c < col:
+                continue
+                
+
+            future_loss = 0
+            for r in range(thief_r, self.n):
+                for c in range(thief_c, self.n):
+                    if r == thief_r and c == thief_c:
+                        continue
+                    cell = self.grid[r][c]
+                    if isinstance(cell, int) and cell > 0:
+                        future_loss += cell
+                        break  
+                
+            min_future_loss = min(min_future_loss, future_loss)
+        
+
+        return min(min_future_loss, dp[row][col])
 
     def cost_2(self,state):
         return state.state[4]
