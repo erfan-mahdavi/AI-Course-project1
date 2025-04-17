@@ -143,7 +143,7 @@ Example:
     ```
 3.  Run the main script:
     ```bash
-    python main.py
+    python main_file.py
     ```
 4.  Use the GUI to input/generate a map and select the desired search phase (BFS, Max Profit A*, Min Loss A*).
 
