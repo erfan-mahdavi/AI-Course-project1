@@ -124,19 +124,20 @@ The project includes a graphical user interface with the following features:
 
 ## Code Structure (Inferred)
 
-* `astar.py`: Contains the `Astar` class implementing the A* search logic, DP precomputation, and heuristic/cost functions.
-* `bfs_solver.py`: Contains the `BFSSolver` class implementing the BFS algorithm.
+* `informed_search.py`: Contains the `Astar` class implementing the A* search logic, DP precomputation, and heuristic/cost functions.
+* `uninformed_search.py`: Contains the `BFSSolver` class implementing the BFS algorithm.
 * `grid_simulator_informed.py`: Contains helper classes for A* (`State`, `Priority`, `PriorityQueue`).
-* `grid_simulator_uninformed.py` (Likely): Contains logic to simulate a path found by BFS or other methods.
-* `gui.py` (Likely): Contains the code for the graphical user interface.
-* `main.py` or similar (Likely): Entry point to run the application, allowing the user to select the phase and interact with the GUI.
+* `grid_simulator_uninformed.py` : Contains logic to simulate a path found by BFS .
+* `main_file_graphical.py` : graphical interface.
+* `main_file.py`: normal main, allowing the user to select the phase (terminal interface).
+* `grid_graphics.py`: GUI, visulization logic.
 
 ## How to Run
 
 *(Provide specific instructions here if available)*
 Example:
 1.  Ensure you have Python installed.
-2.  Install any necessary libraries (e.g., `tkinter` for GUI if used, potentially `numpy`).
+2.  Install any necessary libraries (e.g., `tkinter` for GUI if used).
     ```bash
     pip install -r requirements.txt
     ```
@@ -149,6 +150,6 @@ Example:
 ## Notes
 
 * The DP-based heuristics used in A* are "perfect" because they calculate the true optimal future value, ensuring A* finds the optimal path with potentially fewer state expansions than with less accurate heuristics.
-* The alternative commented-out heuristics provide examples of other possible approaches, though they might not be admissible or as effective.
+* The alternative commented-out heuristics provide examples of other possible approaches, though they might not be as effective especially the phase 2 heuristic.
 
 ---
