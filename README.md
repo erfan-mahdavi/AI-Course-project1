@@ -103,7 +103,7 @@ The `Astar` class defines cost (`g`) and heuristic (`h`) functions based on the 
     * `h = heuristic_2(state)`: Returns `self.min_loss_dp[thief][r][c]`, the precomputed minimum *future* loss from the current cell `(r, c)` given the current `thief` status.
     * Priority: `f = (g + h) * 1`. We minimize `g+h` (total loss).
 
-*(Note: The commented-out alternative heuristics in `Astar.py` represent attempts at potentially simpler, but likely less accurate or non-admissible, heuristic calculations.)*
+*(Note: The commented-out alternative heuristics in `informed_search.py` represent attempts at potentially simpler, but less accurate , heuristic calculations.)*
 
 ### Grid Simulation
 
@@ -134,8 +134,6 @@ The project includes a graphical user interface with the following features:
 
 ## How to Run
 
-*(Provide specific instructions here if available)*
-Example:
 1.  Ensure you have Python installed.
 2.  Install any necessary libraries (e.g., `tkinter` for GUI if used).
     ```bash
@@ -143,9 +141,9 @@ Example:
     ```
 3.  Run the main script:
     ```bash
-    python main_file.py
+    python main_file.py # or main_file_graphical
     ```
-4.  Use the GUI to input/generate a map and select the desired search phase (BFS, Max Profit A*, Min Loss A*).
+4.  Use it to input/generate a map and select the desired search phase (BFS, Max Profit A*, Min Loss A*).
 
 ## Notes
 
