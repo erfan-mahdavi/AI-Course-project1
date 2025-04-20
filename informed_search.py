@@ -7,6 +7,43 @@ class Astar:
         self.grid = grid          # Grid representation with coins, empty cells, or thieves ('!')
         self.phase = phase        # Phase determines whether to maximize profit or minimize loss
 
+        self.calculate_max_profit()
+
+
+    def calculate_max_profit(self):
+
+        # Collect positions of coins (positive integers) from current position to bottom-right
+        coin_values = {}
+        for r in range(0, self.n):
+            for c in range(0, self.n):
+                cell = self.grid[r][c]
+                if isinstance(cell, int) and cell > 0:
+                    coin_values[(r, c)] = cell
+        
+        # Use dynamic programming to calculate max coin sum from (row, col) to (n-1, n-1)
+        self.dp_max_profit = [[0 for _ in range(self.n)] for _ in range(self.n)]
+        
+        # Iterate from the bottom-right corner of the grid to the top-left,
+        # filling the `dp` table with the maximum coin value collectable from each cell to the bottom-right.
+        # Start from (n-1, n-1) and move backward to (row, col), covering a subgrid.
+        for r in range(self.n-1, -1, -1):
+            for c in range(self.n-1, -1, -1):
+                # Get the coin value at the current position, defaulting to 0 if there's no coin.
+                pos_value = coin_values.get((r, c), 0)
+
+                if r == self.n-1 and c == self.n-1:
+                    # Base case: bottom-right corner of the grid, where the path ends.
+                    self.dp_max_profit[r][c] = pos_value
+                elif r == self.n-1:
+                    # Last row (can only move right from here).
+                    self.dp_max_profit[r][c] = pos_value + self.dp_max_profit[r][c+1]
+                elif c == self.n-1:
+                    # Last column (can only move down from here).
+                    self.dp_max_profit[r][c] = pos_value + self.dp_max_profit[r+1][c]
+                else:
+                    # For all other cells, take the maximum of right and down moves.
+                    self.dp_max_profit[r][c] = pos_value + max(self.dp_max_profit[r+1][c], self.dp_max_profit[r][c+1])
+
     def manhattan_distance(self, r1, c1, r2, c2):
         # Calculate Manhattan distance between two cells in the grid
         return abs(r2 - r1) + abs(c2 - c1)
@@ -19,44 +56,11 @@ class Astar:
         """
         row, col = state.state[0], state.state[1]
         has_thief = state.state[6]
-        
-        # Collect positions of coins (positive integers) from current position to bottom-right
-        coin_values = {}
-        for r in range(row, self.n):
-            for c in range(col, self.n):
-                cell = self.grid[r][c]
-                if isinstance(cell, int) and cell > 0:
-                    coin_values[(r, c)] = cell
-        
-        # Use dynamic programming to calculate max coin sum from (row, col) to (n-1, n-1)
-        dp = [[0 for _ in range(self.n)] for _ in range(self.n)]
-        
-        # Iterate from the bottom-right corner of the grid to the top-left,
-        # filling the `dp` table with the maximum coin value collectable from each cell to the bottom-right.
-        # Start from (n-1, n-1) and move backward to (row, col), covering a subgrid.
-        for r in range(self.n-1, row-1, -1):
-            for c in range(self.n-1, col-1, -1):
-                # Get the coin value at the current position, defaulting to 0 if there's no coin.
-                pos_value = coin_values.get((r, c), 0)
 
-                if r == self.n-1 and c == self.n-1:
-                    # Base case: bottom-right corner of the grid, where the path ends.
-                    dp[r][c] = pos_value
-                elif r == self.n-1:
-                    # Last row (can only move right from here).
-                    dp[r][c] = pos_value + dp[r][c+1]
-                elif c == self.n-1:
-                    # Last column (can only move down from here).
-                    dp[r][c] = pos_value + dp[r+1][c]
-                else:
-                    # For all other cells, take the maximum of right and down moves.
-                    dp[r][c] = pos_value + max(dp[r+1][c], dp[r][c+1])
-
-        
         if has_thief:
             return 0  # No value if a thief has been encountered
 
-        return dp[row][col]  # Return estimated max profit from current position to goal
+        return self.dp_max_profit[row][col]  # Return estimated max profit from current position to goal
 
     def cost_1(self, state):
         # Cost function for phase 2 (maximize collected coins)
@@ -64,101 +68,109 @@ class Astar:
 
     def heuristic_2(self, state):
         """
-        Heuristic for minimizing loss (used in phase 3).
+        heuristic for minimizing loss (used in phase 3).
         Predicts the potential loss from encountering thieves on the way to the goal.
-        Uses dynamic programming and estimates potential future losses.
+        Uses dynamic programming with improved efficiency.
         """
+        # Extract current position and thief status from state
         row, col = state.state[0], state.state[1]
-        has_thief = state.state[6]
-
-        # If already at goal, no loss
+        has_thief = state.state[6]  # Boolean indicating if a thief has been encountered
+        
+        # Early return if already at the goal (bottom-right corner)
         if row == self.n - 1 and col == self.n - 1:
             return 0
-        
-        # If no thief encountered yet, check if there's a future thief ahead
-        if not has_thief:
-            has_future_thief = False
-            for r in range(row, self.n):
-                for c in range(col, self.n):
-                    if r == row and c == col:
-                        continue
-                    if self.grid[r][c] == '!':
-                        has_future_thief = True
-                        break
-                if has_future_thief:
-                    break
+
+        # Pre-compute and cache grid information ---
+        # Cache thief locations and positive coin values to avoid repeated grid scans
+        # This is done only once and reused across multiple calls to the heuristic
+        if not hasattr(self, '_thief_locations') or not hasattr(self, '_coin_positions'):
+            self._thief_locations = []  # List to store coordinates of all thieves
+            self._coin_positions = {}   # Dictionary mapping (r,c) coordinates to coin values
             
-            if not has_future_thief:
-                return 0  # No thief ahead means no expected loss
-
-        # Compute potential loss assuming thief already encountered
-        dp = [[0 for _ in range(self.n + 1)] for _ in range(self.n + 1)]
+            # Single grid scan to find all thieves and coins
+            for r in range(self.n):
+                for c in range(self.n):
+                    cell = self.grid[r][c]
+                    if cell == '!':  # Thief cell
+                        self._thief_locations.append((r, c))
+                    elif isinstance(cell, int) and cell > 0:  # Positive coin value
+                        self._coin_positions[(r, c)] = cell
         
-        # Iterate over the grid from bottom-right to top-left,
-        # considering only cells that are at or after the (row, col) position.
-        for r in range(self.n - 1, -1, -1):
-            for c in range(self.n - 1, -1, -1):
-                # Skip cells that are before the (row, col) position.
-                if r < row or (r == row and c < col):
-                    continue
-
-                # Retrieve the value of the current cell from the grid.
-                cell_value = self.grid[r][c]
-
-                # Initialize potential_loss as 0. If the current cell contains a positive coin value and a thief is present,
-                # then that coin value may be stolen (i.e., it counts as a potential loss).
-                potential_loss = 0
-                if isinstance(cell_value, int) and cell_value > 0 and has_thief:
-                    potential_loss = cell_value
-
-                # Fill the dp table by choosing the path that results in minimum coin loss (due to the thief).
+        # --- Handle case where no thief has been encountered yet ---
+        if not has_thief:
+            # Efficient future thief check ---
+            # Filter thief locations to only include those ahead of current position
+            # A thief is "ahead" if both its row and column indices are >= current position
+            future_thieves = [
+                (tr, tc) for tr, tc in self._thief_locations 
+                if tr >= row and tc >= col
+            ]
+            
+            # If no thieves ahead, we won't lose any coins
+            if not future_thieves:
+                return 0
+        
+        # Sparse dynamic programming table ---
+        # Use a dictionary instead of a full 2D array to save space
+        # Keys are (row, col) tuples, values are minimum potential losses
+        dp = {}
+        
+        # Dynamic programming approach: compute minimum potential loss
+        # Start from bottom-right (goal) and work backwards to current position
+        for r in range(self.n - 1, row - 1, -1):
+            for c in range(self.n - 1, col - 1, -1):
+                # If thief already encountered, we might lose coins at this position
+                # Otherwise, no immediate loss at this position
+                potential_loss = self._coin_positions.get((r, c), 0) if has_thief else 0
+                
+                # Base cases and recursive cases for DP
                 if r == self.n - 1 and c == self.n - 1:
-                    # Base case: bottom-right corner. Start from here.
-                    dp[r][c] = potential_loss
+                    # Base case: At goal position
+                    dp[(r, c)] = potential_loss
                 elif r == self.n - 1:
-                    # Last row (can only move right).
-                    dp[r][c] = potential_loss + dp[r][c+1]
+                    # Edge case: Bottom row - can only move right
+                    dp[(r, c)] = potential_loss + dp[(r, c+1)]
                 elif c == self.n - 1:
-                    # Last column (can only move down).
-                    dp[r][c] = potential_loss + dp[r+1][c]
+                    # Edge case: Rightmost column - can only move down
+                    dp[(r, c)] = potential_loss + dp[(r+1, c)]
                 else:
-                    # For all other cells, choose the path (down or right) with the *least* potential loss.
-                    dp[r][c] = potential_loss + min(dp[r+1][c], dp[r][c+1])
-
+                    # General case: Choose path with minimum potential loss
+                    # Can either move down or right
+                    dp[(r, c)] = potential_loss + min(dp[(r+1, c)], dp[(r, c+1)])
         
+        # If thief already encountered, return computed minimum potential loss
         if has_thief:
-            return dp[row][col]
-
-        # If thief hasn't been encountered yet, predict minimum future loss
-        min_future_loss = float('inf')
-        thief_locations = []
-
-        for r in range(row, self.n):
-            for c in range(col, self.n):
-                if self.grid[r][c] == '!':
-                    thief_locations.append((r, c))
+            return dp[(row, col)]
         
-        if not thief_locations:
+        # future loss estimation
+        # Filter and sort future thieves by Manhattan distance to current position
+        # This prioritizes closest thieves which are more likely to be encountered first
+        future_thieves = sorted(
+            [(tr, tc) for tr, tc in self._thief_locations if tr >= row and tc >= col],
+            key=lambda pos: abs(pos[0] - row) + abs(pos[1] - col)
+        )
+        
+        # Double-check that there are future thieves (should already be covered above)
+        if not future_thieves:
             return 0
         
-        # Try to estimate minimal loss by assuming thief is encountered at each location
-        for thief_r, thief_c in thief_locations:
-            if thief_r < row or thief_c < col:
-                continue
-            
-            future_loss = 0
-            for r in range(thief_r, self.n):
-                for c in range(thief_c, self.n):
-                    if r == thief_r and c == thief_c:
-                        continue
-                    cell = self.grid[r][c]
-                    if isinstance(cell, int) and cell > 0:
-                        future_loss += cell
-                        break  # estimate just first future loss
-                
-            min_future_loss = min(min_future_loss, future_loss)
-
-        return min(min_future_loss, dp[row][col])
+        # Simplified future loss estimation ---
+        # Instead of complex calculations for each thief, focus on closest thief
+        # Assumption: The closest thief is most likely to be encountered first
+        thief_r, thief_c = future_thieves[0]  # Get coordinates of closest thief
+        future_loss = 0
+        
+        # Sum up all coins that could potentially be lost after encountering this thief
+        # These are coins that are at or after the thief's position
+        for (r, c), value in self._coin_positions.items():
+            if r >= thief_r and c >= thief_c:
+                future_loss += value
+        
+        # Return the minimum of:
+        # 1. Estimated future loss if we encounter the closest thief
+        # 2. The DP-computed loss which assumes thief already encountered
+        # This gives us a more balanced estimate based on two approaches
+        return min(future_loss, dp[(row, col)])
 
     def cost_2(self, state):
         # Cost function for phase 3 (minimize stolen coins)
