@@ -284,26 +284,31 @@ The system allows comparing the three approaches:
 - Coins stolen
 - Number of states searched (algorithmic efficiency)
 
-This enables analysis of trade-offs between shortest path, maximum profit, and minimum theft strategies.
+## files name 
+* `informed_search.py`: Contains the `Astar` class implementing the A* search logic, DP precomputation, and heuristic/cost functions.
+* `uninformed_search.py`: Contains the `BFSSolver` class implementing the BFS algorithm.
+* `grid_simulator_informed.py`: Contains helper classes for A* (`State`, `Priority`, `PriorityQueue`).
+* `grid_simulator_uninformed.py` : Contains logic to simulate a path found by BFS .
+* `main_file_graphical.py` : graphical interface.
+* `main_file.py`: normal main, allowing the user to select the phase (terminal interface).
+* `grid_graphics.py`: GUI, visulization logic.
 
 ## How to Run
 
-*(Provide specific instructions here if available)*
-Example:
 1.  Ensure you have Python installed.
-2.  Install any necessary libraries (e.g., `tkinter` for GUI if used, potentially `numpy`).
+2.  Install any necessary libraries (e.g., `tkinter` for GUI if used).
     ```bash
     pip install -r requirements.txt
     ```
 3.  Run the main script:
     ```bash
-    python main.py
+    python main_file.py # or main_file_graphical
     ```
-4.  Use the GUI to input/generate a map and select the desired search phase (BFS, Max Profit A*, Min Loss A*).
+4.  Use it to input/generate a map and select the desired search phase (BFS, Max Profit A*, Min Loss A*).
 
 ## Notes
 
 * The DP-based heuristics used in A* are "perfect" because they calculate the true optimal future value, ensuring A* finds the optimal path with potentially fewer state expansions than with less accurate heuristics.
-* The alternative commented-out heuristics provide examples of other possible approaches, though they might not be admissible or as effective.
+* The alternative commented-out heuristics provide examples of other possible approaches, though they might not be as effective especially the phase 2 heuristic.
 
 ---
