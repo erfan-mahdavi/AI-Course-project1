@@ -1,4 +1,3 @@
-# main.py
 from grid_simulator_uninformed import GridSimulator
 from uninformed_search import BFSSolver
 from informed_search import Astar
