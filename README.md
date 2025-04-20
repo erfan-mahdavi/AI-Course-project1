@@ -52,44 +52,165 @@ The environment is an n x n grid where each cell can be one of the following:
     * The definition of `g` (cost-so-far) and `h` (heuristic estimate) depends on the optimization phase (`phase` parameter).
     * Handles maximization (profit) by multiplying the priority `f` by `-1` before inserting into the min-priority queue.
 
-### State Representation (`State` class)
 
-* Defined in `grid_simulator_informed.py`.
-* Crucial for tracking the necessary information during the A* search.
-* Each state object stores a tuple:
-    ```
-    (
-        index_i,          # Current row
-        index_j,          # Current column
-        current_cost,     # Accumulated cost from negative cells (absolute values)
-        current_profit,   # Accumulated profit from positive cells
-        stolen_coin,      # Accumulated coins stolen by thieves
-        collected_coin,   # Net coins (profit - cost - extra stolen cost)
-        has_thief,        # Boolean: True if currently accompanied by a thief
-        parent_state,     # Reference to the previous State object
-        action,           # Action ('down' or 'right') taken to reach this state
-        list_of_actions   # List of actions from start to this state
-    )
-    ```
-* The `__init__` method calculates the state values based on the `parent_state` and the `value` of the current cell, correctly applying the game rules (using helper methods `thief`, `positive_value`, `negative_value`).
 
-### Dynamic Programming Heuristics
+## Core Components
 
-To guide the A* search efficiently, dynamic programming is used to precompute the *exact* optimal future values from any grid cell. These serve as perfect heuristics.
+### 1. State Management (`grid_simulator_informed.py`)
 
-1.  **`_compute_profit_dp`:**
-    * Calculates the maximum possible net `collected_coin` achievable from any cell `(r, c)` to the goal `(n-1, n-1)`.
-    * Uses two DP tables: `dp_no` (entering `(r,c)` without a thief) and `dp_th` (entering `(r,c)` with a thief).
-    * Iterates bottom-up from the goal.
-    * Result stored in `self.profit_dp`.
+This file defines the core data structures for representing states in the search algorithms:
 
-2.  **`_compute_min_loss_dp`:**
-    * Calculates the minimum possible `stolen_coin` accumulated from any cell `(r, c)` to the goal `(n-1, n-1)`.
-    * Also uses `dp_no` and `dp_th` tables, initialized to `float('inf')`.
-    * Iterates bottom-up from the goal.
-    * Result stored in `self.min_loss_dp`.
+#### `Priority` Class
 
-### A* Heuristic and Cost Functions
+Wrapper class for states with priority values for use in priority queues:
+
+```python
+class Priority:
+    def __init__(self, priority, state):
+        self.priority = priority  # Priority value for ordering
+        self.state = state        # State object being prioritized
+   
+    def __lt__(self, other):
+        # Less-than comparison for PriorityQueue ordering
+        return self.priority <= other.priority
+```
+
+#### `State` Class
+
+Represents a state in the grid environment:
+
+```python
+class State:
+    def __init__(self, i, j, value, parent_state, action):
+        # State initialization with position, cell value, parent state and action
+        # ...
+```
+
+State format is a tuple containing:
+- `index_i`, `index_j`: Grid position (row, column)
+- `current_cost`: Accumulated cost
+- `current_profit`: Accumulated profit
+- `stolen_coin`: Amount of coins stolen
+- `collected_coin`: Total coins collected
+- `has_thief`: Boolean flag for thief status
+- `parent_state`: Reference to previous state
+- `action`: Action taken to reach this state
+- `list_of_actions`: History of actions
+
+Special methods handle different cell types:
+- `thief()`: Handles thief cells (toggling thief status)
+- `positive_value()`: Handles coin collection (affected by thief status)
+- `negetive_value()`: Handles penalties (affected by thief status)
+
+### 2. Grid Simulation (`grid_simulator_uninformed.py`)
+
+Contains the `GridSimulator` class which simulates grid traversal based on a given path:
+
+```python
+class GridSimulator:
+    def __init__(self, grid):
+        self.original_grid = [row.copy() for row in grid]
+        self.n = len(grid)
+
+    def simulate_path(self, path):
+        # Simulates following a path through the grid
+        # Updates tracking variables (coins, thieves) as cells are traversed
+        # Returns final statistics
+```
+
+The simulator maintains the game state by tracking:
+- Current position
+- Coins collected
+- Coins stolen
+- Thief status
+
+### 3. Uninformed Search (`uninformed_search.py`)
+
+Implements Breadth-First Search for finding the shortest path:
+
+```python
+class BFSSolver:
+    def __init__(self, grid_size):
+        self.grid_size = grid_size
+        
+    def find_shortest_path(self):
+        # BFS implementation that finds shortest path from (0,0) to (grid_size-1, grid_size-1)
+        # Returns path and number of states explored
+```
+
+BFS is used for Phase 1, seeking only to reach the exit with the minimum number of moves.
+
+### 4. Informed Search (`informed_search.py`)
+
+Implements A* search with different heuristics:
+
+```python
+class Astar:
+    def __init__(self, n, grid, phase):
+        self.n = n
+        self.grid = grid
+        self.phase = phase
+        # Precompute heuristics using dynamic programming
+        self.profit_dp = self._compute_max_profit_dp()  
+        self.min_loss_dp = self._compute_min_loss_dp()  
+```
+
+Key components:
+- Dynamic programming tables for heuristic computation
+- Different heuristic and cost functions for different objectives
+- A* implementation handling thief mechanics
+
+Phases:
+- **Phase 2**: Maximize profit using `heuristic_1` and `cost_1`
+- **Phase 3**: Minimize theft using `heuristic_2` and `cost_2`
+
+### 5. Visualization and UI (`main_file_graphical.py`)
+
+Provides a GUI interface for:
+- Creating/loading grids
+- Running different algorithms
+- Visualizing results
+
+Main components:
+- `GridApp`: Initial grid setup and configuration
+- `Menu`: Algorithm selection and result visualization
+- Utility functions for grid generation and file I/O
+
+## Gameplay and Mechanics
+
+### Grid Structure
+- Square grid with size n×n
+- Movement restricted to down and right only
+- Start position: (0,0)
+- Goal position: (n-1, n-1)
+
+### Cell Types
+- **Positive integers**: Coins that can be collected
+- **Negative integers**: Penalty/cost cells
+- **'!'**: Thief cells
+
+### Thief Mechanics
+When a player has a thief:
+- Positive value cells: Thief steals the coins (no collection)
+- Negative value cells: Player pays the cost and thief steals additional coins (double penalty)
+- Thief disappears after visiting one cell
+
+When a player doesn't have a thief:
+- Positive value cells: Player collects the coins
+- Negative value cells: Player just pays the cost
+- Encountering a thief cell gives the player a thief
+
+## Algorithms
+
+### Breadth-First Search (BFS)
+- Used for Phase 1 (exit-only)
+- Guarantees shortest path to exit
+- Ignores coin collection/theft mechanics
+
+### A* Search
+- Used for Phases 2 and 3
+- Informed search with admissible heuristics
+- Pre-computed dynamic programming tables for efficiency
 
 The `Astar` class defines cost (`g`) and heuristic (`h`) functions based on the phase:
 
@@ -103,27 +224,67 @@ The `Astar` class defines cost (`g`) and heuristic (`h`) functions based on the 
     * `h = heuristic_2(state)`: Returns `self.min_loss_dp[thief][r][c]`, the precomputed minimum *future* loss from the current cell `(r, c)` given the current `thief` status.
     * Priority: `f = (g + h) * 1`. We minimize `g+h` (total loss).
 
-*(Note: The commented-out alternative heuristics in `informed_search.py` represent attempts at potentially simpler, but less accurate , heuristic calculations.)*
+#### Phase 2: Maximizing Profit
+- Goal: Collect maximum possible coins
+- Uses profit-maximizing heuristic
+- Considers thief mechanics when computing optimal path
 
-### Grid Simulation
+#### Phase 3: Minimizing Theft
+- Goal: Minimize coins stolen
+- Uses theft-minimizing heuristic
+- May take longer paths to avoid thieves or high-value cells when a thief is present
 
-* The core simulation logic is embedded within the `State` class's update methods and mirrored precisely in the DP calculations.
-* An external `GridSimulator` class (informed/uninformed, as mentioned) likely exists to take a generated path and calculate the final outcome (coins collected, stolen, etc.) for verification or display. *(Code for this simulator was discussed but not fully shown in the last prompt)*.
+## Implementation Details
 
-## Graphical User Interface (GUI)
+### Dynamic Programming Heuristics
 
-The project includes a graphical user interface with the following features:
-* Inputting the grid map (e.g., via copy-pasting).
-* Generating random grid maps.
-* Visualizing the calculated optimal path on the grid.
-* Displaying key results:
-    * Final path (sequence of moves).
-    * Final net coins collected.
-    * Total coins stolen by thieves.
-    * Number of states explored by the search algorithm.
+Two DP tables are precomputed for efficiency:
 
-## Code Structure (Inferred)
+1. **Max Profit DP**:
+   - Tracks maximum possible profit from any cell to goal
+   - Maintains separate tables for "with thief" and "without thief" states
+   - Used as heuristic for Phase 2
 
+   * Calculates the maximum possible net `collected_coin` achievable from any cell `(r, c)` to the goal `(n-1, n-1)`.
+    * Uses two DP tables: `dp_no` (entering `(r,c)` without a thief) and `dp_th` (entering `(r,c)` with a thief).
+    * Iterates bottom-up from the goal.
+    * Result stored in `self.profit_dp`.
+
+2. **Min Loss DP**:
+   - Tracks minimum possible theft from any cell to goal
+   - Maintains separate tables for "with thief" and "without thief" states
+   - Used as heuristic for Phase 3
+
+   * Calculates the minimum possible `stolen_coin` accumulated from any cell `(r, c)` to the goal `(n-1, n-1)`.
+    * Also uses `dp_no` and `dp_th` tables, initialized to `float('inf')`.
+    * Iterates bottom-up from the goal.
+    * Result stored in `self.min_loss_dp`.
+
+### User Interface
+
+The application provides:
+- Grid creation and editing
+- Random grid generation
+- File I/O for grid loading/saving
+- Visual path representation
+- Statistics display for comparison
+
+## Usage
+
+1. Start the application (`main_file_graphical.py`)
+2. Create or load a grid
+3. Choose the desired approach (Phase 1, 2, or 3)
+4. View the path and statistics
+
+## Results Comparison
+
+The system allows comparing the three approaches:
+- Path length
+- Coins collected
+- Coins stolen
+- Number of states searched (algorithmic efficiency)
+
+## files name 
 * `informed_search.py`: Contains the `Astar` class implementing the A* search logic, DP precomputation, and heuristic/cost functions.
 * `uninformed_search.py`: Contains the `BFSSolver` class implementing the BFS algorithm.
 * `grid_simulator_informed.py`: Contains helper classes for A* (`State`, `Priority`, `PriorityQueue`).
