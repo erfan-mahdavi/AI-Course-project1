@@ -276,33 +276,50 @@ class Astar:
         # Initialize DP tables with -inf so we can take maximums
         dp_no = [[float('-inf')] * n for _ in range(n)]  # entering without thief
         dp_th = [[float('-inf')] * n for _ in range(n)]  # entering with thief
+        # Initialize DP tables with -inf so we can take maximums
+        dp_no = [[float('-inf')] * n for _ in range(n)]  # entering without thief
+        dp_th = [[float('-inf')] * n for _ in range(n)]  # entering with thief
 
+        # Helper: select correct DP table based on thief state
         # Helper: select correct DP table based on thief state
         def get_dp(nr, nc, has_thief):
             return dp_th[nr][nc] if has_thief else dp_no[nr][nc]
 
         # Fill tables from bottom-right toward top-left
+        # Fill tables from bottom-right toward top-left
         for r in range(n - 1, -1, -1):
             for c in range(n - 1, -1, -1):
                 cell = grid[r][c]
                 # For each cell, consider both possible "has_thief" entering states
+                # For each cell, consider both possible "has_thief" entering states
                 for has_thief in (False, True):
                     # Determine immediate gain and next thief state
+                    # Determine immediate gain and next thief state
                     if has_thief:
+                        # If a thief is on board:
                         # If a thief is on board:
                         if cell == '!':
                             gain = 0             # no direct gain
                             next_thief = False  # two thieves fight
+                            gain = 0             # no direct gain
+                            next_thief = False  # two thieves fight
                         else:
                             # robber steals treasure; on cost you pay twice
+                            # robber steals treasure; on cost you pay twice
                             if cell > 0:
+                                gain = 0
                                 gain = 0
                             else:
                                 gain = -2 * abs(cell)
                             next_thief = False
+                                gain = -2 * abs(cell)
+                            next_thief = False
                     else:
                         # No thief on board:
+                        # No thief on board:
                         if cell == '!':
+                            gain = 0
+                            next_thief = True   # pick up a thief
                             gain = 0
                             next_thief = True   # pick up a thief
                         else:
@@ -310,9 +327,14 @@ class Astar:
                             next_thief = False
 
                     # If at exit cell, no future moves
+                            gain = cell         # normal cell effect (can be neg)
+                            next_thief = False
+
+                    # If at exit cell, no future moves
                     if r == n - 1 and c == n - 1:
                         best_future = 0
                     else:
+                        # Otherwise consider right and down neighbors
                         # Otherwise consider right and down neighbors
                         best_future = float('-inf')
                         for dr, dc in ((1, 0), (0, 1)):
@@ -322,7 +344,9 @@ class Astar:
                                 if val > best_future:
                                     best_future = val
 
+
                     total = gain + best_future
+                    # Save into the appropriate DP table
                     # Save into the appropriate DP table
                     if has_thief:
                         dp_th[r][c] = total
@@ -331,41 +355,60 @@ class Astar:
 
         return {False: dp_no, True: dp_th}
 
+
     def _compute_min_loss_dp(self):
         """
         Bottom-up DP to compute minimum total stolen coins from cell (r,c)
         to exit, in two scenarios: entering with or without thief.
         Returns dict {False: dp_no, True: dp_th}.
+        Bottom-up DP to compute minimum total stolen coins from cell (r,c)
+        to exit, in two scenarios: entering with or without thief.
+        Returns dict {False: dp_no, True: dp_th}.
         """
         n    = self.n
+        n    = self.n
         grid = self.grid
+        # Initialize with +inf so we can take minimums
         # Initialize with +inf so we can take minimums
         dp_no = [[float('inf')] * n for _ in range(n)]
         dp_th = [[float('inf')] * n for _ in range(n)]
 
         # Helper to choose DP by thief state
+        # Helper to choose DP by thief state
         def get_dp(nr, nc, has_thief):
             return dp_th[nr][nc] if has_thief else dp_no[nr][nc]
 
+        # Fill in reverse order
         # Fill in reverse order
         for r in range(n - 1, -1, -1):
             for c in range(n - 1, -1, -1):
                 cell = grid[r][c]
                 for has_thief in (False, True):
                     # Immediate stolen cost at this cell
+                    # Immediate stolen cost at this cell
                     if has_thief:
                         if cell == '!':
                             cost = 0
                             next_thief = False
+                            cost = 0
+                            next_thief = False
                         else:
                             # thief steals abs(cell) if integer
+                            # thief steals abs(cell) if integer
                             cost = abs(cell) if isinstance(cell, int) else 0
+                            next_thief = False
                             next_thief = False
                     else:
                         if cell == '!':
                             cost = 0
                             next_thief = True
+                            cost = 0
+                            next_thief = True
                         else:
+                            cost = 0
+                            next_thief = False
+
+                    # Compute best future stolen coins
                             cost = 0
                             next_thief = False
 
@@ -381,6 +424,7 @@ class Astar:
                                 if val < best_future:
                                     best_future = val
 
+
                     total = cost + best_future
                     if has_thief:
                         dp_th[r][c] = total
@@ -391,11 +435,19 @@ class Astar:
 
     def heuristic_1(self, state):
         # Phase 2 heuristic: exact max net coins from current cell to goal
+        # Phase 2 heuristic: exact max net coins from current cell to goal
         r, c = state.state[0], state.state[1]
+        thief = state.state[6]  # whether a thief is currently in the car
         thief = state.state[6]  # whether a thief is currently in the car
         return self.profit_dp[thief][r][c]
 
+
     def cost_1(self, state):
+        # Phase 2 cost g(n): coins collected so far (from parent into this state)
+        parent = state.state[7]
+        if parent is None:
+            return 0
+        return parent.state[5]
         # Phase 2 cost g(n): coins collected so far (from parent into this state)
         parent = state.state[7]
         if parent is None:
@@ -404,11 +456,19 @@ class Astar:
 
     def heuristic_2(self, state):
         # Phase 3 heuristic: exact min stolen coins from current cell to goal
+        # Phase 3 heuristic: exact min stolen coins from current cell to goal
         r, c = state.state[0], state.state[1]
+        thief = state.state[6]
         thief = state.state[6]
         return self.min_loss_dp[thief][r][c]
 
+
     def cost_2(self, state):
+        # Phase 3 cost g(n): coins stolen so far (from parent into this state)
+        parent = state.state[7]
+        if parent is None:
+            return 0
+        return parent.state[4]
         # Phase 3 cost g(n): coins stolen so far (from parent into this state)
         parent = state.state[7]
         if parent is None:
@@ -419,33 +479,55 @@ class Astar:
         # Main A* search driver
         state_counter = 0
         # Select heuristic, cost, and sign based on phase
+        # Main A* search driver
+        state_counter = 0
+        # Select heuristic, cost, and sign based on phase
         if self.phase == 2:
+            h, g, sign = self.heuristic_1, self.cost_1, -1
             h, g, sign = self.heuristic_1, self.cost_1, -1
         elif self.phase == 3:
             h, g, sign = self.heuristic_2, self.cost_2, 1
+            h, g, sign = self.heuristic_2, self.cost_2, 1
 
+        # Initialize start state at (0,0)
         # Initialize start state at (0,0)
         initial = State(0, 0, self.grid[0][0], None, None)
         goal = (self.n - 1, self.n - 1)
         moves = {'down': (1, 0), 'right': (0, 1)}
+        goal = (self.n - 1, self.n - 1)
+        moves = {'down': (1, 0), 'right': (0, 1)}
 
+        # Fringe is a priority queue ordered by f = g + h (with sign)
         # Fringe is a priority queue ordered by f = g + h (with sign)
         fringe = PriorityQueue()
         fringe.put(Priority((h(initial) + g(initial)) * sign, initial))
 
         # Explore until fringe is empty or goal reached
+
+        # Explore until fringe is empty or goal reached
         while not fringe.empty():
             curr = fringe.get().state
+            curr = fringe.get().state
             r, c = curr.state[0], curr.state[1]
+            state_counter += 1
             state_counter += 1
             if (r, c) == goal:
                 return curr, state_counter
 
             # Expand both possible moves: down and right
+
+            # Expand both possible moves: down and right
             for act, (dr, dc) in moves.items():
+                nr, nc = r + dr, c + dc
                 nr, nc = r + dr, c + dc
                 if nr >= self.n or nc >= self.n:
                     continue
+                new_s = State(nr, nc, self.grid[nr][nc], curr, act)
+                # Compute f-score and add to fringe
+                f = (h(new_s) + g(new_s)) * sign
+                fringe.put(Priority(f, new_s))
+
+        # Return None if no valid path
                 new_s = State(nr, nc, self.grid[nr][nc], curr, act)
                 # Compute f-score and add to fringe
                 f = (h(new_s) + g(new_s)) * sign
